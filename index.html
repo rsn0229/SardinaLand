@@ -875,7 +875,7 @@
             updateTicket(); 
 
             const link = document.createElement('a');
-            link.download = `fairtle_ticket_${Date.now()}.png`;
+            link.download = `ticket_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
 
