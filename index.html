@@ -143,36 +143,15 @@
 
         .help-text { font-size: 0.8em; color: #888; margin-top: 5px; }
 
-        /* --- 📱 모바일 최적화 --- */
         @media (max-width: 768px) {
-            header {
-                padding: 10px;
-                margin-bottom: 10px;
-            }
+            header { padding: 10px; margin-bottom: 10px; }
             .title-box { font-size: 1.5rem; }
-
             .preview-area { 
-                position: sticky;
-                top: 0; 
-                width: 100%;
-                box-sizing: border-box;
-                padding: 10px;
-                border-radius: 0 0 12px 12px; 
-                margin-top: 0;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-                border-top: none; 
+                position: sticky; top: 0; width: 100%; box-sizing: border-box; padding: 10px;
+                border-radius: 0 0 12px 12px; margin-top: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-top: none; 
             }
-            
-            .preview-area h3, 
-            .preview-area .help-text {
-                display: none;
-            }
-
-            button.btn.full { 
-                margin-top: 5px; 
-                padding: 8px 15px; 
-                font-size: 1em; 
-            }
+            .preview-area h3, .preview-area .help-text { display: none; }
+            button.btn.full { margin-top: 5px; padding: 8px 15px; font-size: 1em; }
         }
     </style>
 </head>
@@ -214,8 +193,18 @@
                 <div id="color-picker-text"></div>
                 <input type="hidden" id="textColor" value="#000000">
             </div>
+            <div class="row">
+                <label>폰트 테두리</label>
+                <div id="color-picker-outline"></div>
+                <input type="hidden" id="outlineColor" value="#FFFFFF">
+            </div>
+            <div class="row">
+                <label>상세 정보색</label>
+                <div id="color-picker-detail"></div>
+                <input type="hidden" id="detailColor" value="#333333">
+            </div>
         </div>
-
+        
         <div class="control-group">
             <h3>티켓 썸네일 이미지</h3>
             <div class="row">
@@ -313,7 +302,7 @@
 
         <div class="control-group">
             <h3>어트랙션 (오른쪽 영역)</h3>
-            <p class="help-text" style="margin-top:0; margin-bottom:8px;">놀이기구 4종과 대기 시간이 랜덤하게 들어갑니다.</p>
+            <p class="help-text" style="margin-top:0; margin-bottom:8px;">놀이기구 4종과 각각의 대기 시간이 랜덤하게 들어갑니다.</p>
             <div class="row" style="display: flex; gap: 10px;">
                 <button class="btn primary" onclick="generateRandomAttractions('general')" style="flex:1;">일반 테마</button>
                 <button class="btn primary" onclick="generateRandomAttractions('sardina')" style="flex:1;">헌정 테마</button>
@@ -372,21 +361,15 @@
             uploadedImg = demoImg;
             updateTicket();
         };
-        demoImg.onerror = function() {
-            console.warn("로컬 이미지를 불러올 수 없습니다. 경로를 확인해주세요: assets/ancandwav.png");
-        };
+        demoImg.onerror = function() { console.warn("assets/ancandwav.png 미로드"); };
         demoImg.src = "assets/ancandwav.png"; 
 
         const demoPolaroid = new Image();
         demoPolaroid.onload = function() {
             polaroidImg = demoPolaroid;
-            document.getElementById('pImgScale').value = 20; 
-            document.getElementById('pImgScaleNum').value = 20;
             updateTicket();
         };
-        demoPolaroid.onerror = function() {
-            console.warn("로컬 이미지를 불러올 수 없습니다. 경로를 확인해주세요: assets/ancwav.png");
-        };
+        demoPolaroid.onerror = function() { console.warn("assets/ancwav.png 미로드"); };
         demoPolaroid.src = "assets/ancwav.png";
 
         setTimeout(updateTicket, 500);
@@ -394,36 +377,29 @@
 
     function initTexturePattern() {
         const tCanvas = document.createElement('canvas');
-        tCanvas.width = 150; 
-        tCanvas.height = 150;
+        tCanvas.width = 150; tCanvas.height = 150;
         const tCtx = tCanvas.getContext('2d');
-        
         for (let i = 0; i < 6000; i++) {
             tCtx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)';
             tCtx.fillRect(Math.random() * 150, Math.random() * 150, 1, 1);
         }
-        
         tCtx.globalAlpha = 0.02;
         for (let i = 0; i < 40; i++) {
             tCtx.beginPath();
             tCtx.moveTo(Math.random() * 150, Math.random() * 150);
             tCtx.lineTo(Math.random() * 150, Math.random() * 150);
-            tCtx.strokeStyle = '#000';
-            tCtx.lineWidth = 1;
-            tCtx.stroke();
+            tCtx.strokeStyle = '#000'; tCtx.lineWidth = 1; tCtx.stroke();
         }
         texturePattern = ctx.createPattern(tCanvas, 'repeat');
     }
 
     function clearImage(type) {
         if (type === 'ticket') {
-            uploadedImg = null; 
-            document.getElementById('userImage').value = ''; 
+            uploadedImg = null; document.getElementById('userImage').value = ''; 
             tImgX = 0; tImgY = 0;
             document.getElementById('imgScale').value = 100; document.getElementById('imgScaleNum').value = 100;
         } else if (type === 'polaroid') {
-            polaroidImg = null; 
-            document.getElementById('polaroidImageInput').value = ''; 
+            polaroidImg = null; document.getElementById('polaroidImageInput').value = ''; 
             pImgX = 0; pImgY = 0;
             document.getElementById('pImgScale').value = 20; document.getElementById('pImgScaleNum').value = 20;
         }
@@ -437,12 +413,10 @@
                 const img = new Image();
                 img.onload = function() { 
                     if (type === 'ticket') {
-                        uploadedImg = img; 
-                        tImgX = 0; tImgY = 0;
+                        uploadedImg = img; tImgX = 0; tImgY = 0;
                         document.getElementById('imgScale').value = 100; document.getElementById('imgScaleNum').value = 100;
                     } else if (type === 'polaroid') {
-                        polaroidImg = img; 
-                        pImgX = 0; pImgY = 0;
+                        polaroidImg = img; pImgX = 0; pImgY = 0;
                         document.getElementById('pImgScale').value = 20; document.getElementById('pImgScaleNum').value = 20;
                     }
                     updateTicket(); 
@@ -478,19 +452,11 @@
         }
     }
 
-    function clearStickers() {
-        stickers = [];
-        activeStickerIdx = -1;
-        updateStickerUI();
-        updateTicket();
-    }
-
+    function clearStickers() { stickers = []; activeStickerIdx = -1; updateStickerUI(); updateTicket(); }
     function deleteActiveSticker() {
         if(activeStickerIdx >= 0) {
             stickers.splice(activeStickerIdx, 1);
-            activeStickerIdx = -1;
-            updateStickerUI();
-            updateTicket();
+            activeStickerIdx = -1; updateStickerUI(); updateTicket();
         }
     }
 
@@ -505,12 +471,10 @@
         const scaleSlider = document.getElementById('stickerScale');
         const btnDelete = document.getElementById('btnDeleteSticker');
         if (activeStickerIdx >= 0 && stickers[activeStickerIdx]) {
-            scaleSlider.disabled = false;
-            btnDelete.disabled = false;
+            scaleSlider.disabled = false; btnDelete.disabled = false;
             scaleSlider.value = Math.round(stickers[activeStickerIdx].scale * 100);
         } else {
-            scaleSlider.disabled = true;
-            btnDelete.disabled = true;
+            scaleSlider.disabled = true; btnDelete.disabled = true;
         }
     }
 
@@ -519,7 +483,6 @@
         const shuffled = [...targetDB].sort(() => 0.5 - Math.random());
         const count = 4;
         const selected = shuffled.slice(0, count);
-        
         currentAttractions = selected.map(name => {
             const waitTime = (Math.floor(Math.random() * 12) + 1) * 10; 
             return { name, waitTime };
@@ -527,79 +490,52 @@
         updateTicket();
     }
 
-function hexToRgb(color) {
-    const div = document.createElement('div');
-    div.style.color = color;
-    div.style.display = 'none';
-    document.body.appendChild(div);
-
-    const style = getComputedStyle(div).color;
-    document.body.removeChild(div);
-
-    const match = style.match(/\d+/g);
-    if (match) {
-        return { r: parseInt(match[0]), g: parseInt(match[1]), b: parseInt(match[2]) };
+    function hexToRgb(color) {
+        const div = document.createElement('div');
+        div.style.color = color;
+        div.style.display = 'none';
+        document.body.appendChild(div);
+        const style = getComputedStyle(div).color;
+        document.body.removeChild(div);
+        const match = style.match(/\d+/g);
+        if (match) return { r: parseInt(match[0]), g: parseInt(match[1]), b: parseInt(match[2]) };
+        return { r: 255, g: 255, b: 255 }; 
     }
-    return { r: 255, g: 255, b: 255 }; 
-}
 
     function drawTicketPath(ctx, width, height, radius) {
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(width, 0);
-        ctx.lineTo(width, height / 2 - radius);
+        ctx.moveTo(0, 0); ctx.lineTo(width, 0); ctx.lineTo(width, height / 2 - radius);
         ctx.arc(width, height / 2, radius, 1.5 * Math.PI, 0.5 * Math.PI, true);
-        ctx.lineTo(width, height);
-        ctx.lineTo(0, height);
-        ctx.lineTo(0, height / 2 + radius);
+        ctx.lineTo(width, height); ctx.lineTo(0, height); ctx.lineTo(0, height / 2 + radius);
         ctx.arc(0, height / 2, radius, 0.5 * Math.PI, 1.5 * Math.PI, true);
         ctx.closePath();
     }
 
     function createBackgroundPattern(type, color) {
         if(type === 'none') return null;
-        
         const pCanvas = document.createElement('canvas');
         const pCtx = pCanvas.getContext('2d');
-        const size = 80; 
-        pCanvas.width = size;
-        pCanvas.height = size;
-
-        pCtx.fillStyle = color;
-        pCtx.strokeStyle = color;
-        pCtx.lineWidth = 4;
-
+        const size = 80; pCanvas.width = size; pCanvas.height = size;
+        pCtx.fillStyle = color; pCtx.strokeStyle = color; pCtx.lineWidth = 4;
         if (type === 'circle') {
             pCtx.beginPath(); pCtx.arc(20, 20, 12, 0, Math.PI*2); pCtx.fill();
             pCtx.beginPath(); pCtx.arc(60, 60, 12, 0, Math.PI*2); pCtx.fill();
-        } 
-        else if (type === 'heart') {
+        } else if (type === 'heart') {
             const drawHeart = (cx, cy) => {
-                pCtx.save();
-                pCtx.translate(cx, cy + 4);
-                pCtx.beginPath();
-                pCtx.moveTo(0, 0);
-                pCtx.bezierCurveTo(0, -10, -15, -10, -15, 0);
-                pCtx.bezierCurveTo(-15, 10, 0, 20, 0, 20);
-                pCtx.bezierCurveTo(0, 20, 15, 10, 15, 0);
-                pCtx.bezierCurveTo(15, -10, 0, -10, 0, 0);
-                pCtx.fill();
-                pCtx.restore();
+                pCtx.save(); pCtx.translate(cx, cy + 4); pCtx.beginPath();
+                pCtx.moveTo(0, 0); pCtx.bezierCurveTo(0, -10, -15, -10, -15, 0);
+                pCtx.bezierCurveTo(-15, 10, 0, 20, 0, 20); pCtx.bezierCurveTo(0, 20, 15, 10, 15, 0);
+                pCtx.bezierCurveTo(15, -10, 0, -10, 0, 0); pCtx.fill(); pCtx.restore();
             };
             drawHeart(20, 20); drawHeart(60, 60);
-        } 
-        else if (type === 'star') {
+        } else if (type === 'star') {
             const drawStar = (cx, cy) => {
-                pCtx.save();
-                pCtx.translate(cx, cy);
-                pCtx.beginPath();
+                pCtx.save(); pCtx.translate(cx, cy); pCtx.beginPath();
                 for (let i = 0; i < 5; i++) {
                     pCtx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 16, -Math.sin((18 + i * 72) * Math.PI / 180) * 16);
                     pCtx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 6, -Math.sin((54 + i * 72) * Math.PI / 180) * 6);
                 }
-                pCtx.closePath();
-                pCtx.fill();
-                pCtx.restore();
+                pCtx.closePath(); pCtx.fill(); pCtx.restore();
             };
             drawStar(20, 20); drawStar(60, 60);
         } 
@@ -614,9 +550,12 @@ function hexToRgb(color) {
         const marginPatternColor = document.getElementById('marginPatternColor').value;
         const bgColor = document.getElementById('bgColor').value;
         const shadowColor = document.getElementById('shadowColor').value;
-        const textColor = document.getElementById('textColor').value;
-        const applyTexture = document.getElementById('paperTexture').checked;
         
+        const textColor = document.getElementById('textColor').value;
+        const outlineColor = document.getElementById('outlineColor').value;
+        const detailColor = document.getElementById('detailColor').value;
+
+        const applyTexture = document.getElementById('paperTexture').checked;
         const parkName = document.getElementById('parkName').value;
         const fairName = document.getElementById('fairName').value;
         const issueDate = document.getElementById('issueDate').value;
@@ -637,9 +576,7 @@ function hexToRgb(color) {
 
         ctx.save();
         ctx.shadowColor = shadowColor;
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetX = 5; 
-        ctx.shadowOffsetY = 5;
+        ctx.shadowBlur = 15; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(pX, pY, pW, pH);
         ctx.restore();
@@ -681,9 +618,7 @@ function hexToRgb(color) {
         ctx.save();
         ctx.translate(tX, tY);
         ctx.shadowColor = shadowColor;
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetX = 5; 
-        ctx.shadowOffsetY = 5;
+        ctx.shadowBlur = 15; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
         ctx.fillStyle = bgColor;
         drawTicketPath(ctx, ticketW, ticketH, holeRadius);
         ctx.fill();
@@ -730,19 +665,22 @@ function hexToRgb(color) {
         ctx.stroke();
         ctx.setLineDash([]); 
 
-        ctx.fillStyle = textColor;
-ctx.lineWidth = 4; 
-ctx.strokeStyle = '#FFFFFF'; 
-ctx.lineJoin = 'round';
+        ctx.lineWidth = 4; 
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = outlineColor; 
+        ctx.fillStyle = textColor; 
+        
         ctx.font = "400 38px 'Do Hyeon'";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
-ctx.strokeText(parkName, 30, 30);
+        ctx.strokeText(parkName, 30, 30);
         ctx.fillText(parkName, 30, 30);
         
         ctx.font = "700 24px 'Noto Sans KR'";
-ctx.strokeText(fairName, 30, 75);
+        ctx.strokeText(fairName, 30, 75);
         ctx.fillText(fairName, 30, 75);
+
+        ctx.fillStyle = detailColor;
 
         ctx.font = "700 16px 'Noto Sans KR'";
         ctx.fillText("DATE: " + issueDate, dashX + 20, 35);
@@ -776,7 +714,6 @@ ctx.strokeText(fairName, 30, 75);
             if(!s.img) return;
             const w = s.img.width * s.scale;
             const h = s.img.height * s.scale;
-            
             if(i === activeStickerIdx) {
                 ctx.save();
                 ctx.setLineDash([5, 5]);
@@ -791,7 +728,6 @@ ctx.strokeText(fairName, 30, 75);
 
     let isDragging = false;
     let startMouseX = 0; let startMouseY = 0;
-    
     let initTImgX = 0, initTImgY = 0;
     let initPImgX = 0, initPImgY = 0;
     let initStickerX = 0, initStickerY = 0;
@@ -802,19 +738,13 @@ ctx.strokeText(fairName, 30, 75);
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const scaleX = canvas.width / rect.width; 
         const scaleY = canvas.height / rect.height;
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
     }
 
     function handlePointerDown(e) {
         const pos = getMousePos(e);
-        startMouseX = pos.x; 
-        startMouseY = pos.y;
-        
+        startMouseX = pos.x; startMouseY = pos.y;
         activeDrag = null;
-        
         let stickerHit = false;
         for(let i = stickers.length - 1; i >= 0; i--) {
             const s = stickers[i];
@@ -823,82 +753,55 @@ ctx.strokeText(fairName, 30, 75);
             if(pos.x >= s.x - w/2 && pos.x <= s.x + w/2 && pos.y >= s.y - h/2 && pos.y <= s.y + h/2) {
                 activeDrag = { type: 'sticker', index: i };
                 activeStickerIdx = i;
-                initStickerX = s.x;
-                initStickerY = s.y;
+                initStickerX = s.x; initStickerY = s.y;
                 stickerHit = true;
                 break;
             }
         }
-
         if (!stickerHit) {
             activeStickerIdx = -1; 
-            
             if (pos.x >= tX && pos.x <= tX + ticketW && pos.y >= tY && pos.y <= tY + ticketH) {
-                if(uploadedImg) {
-                    activeDrag = { type: 'ticket' };
-                    initTImgX = tImgX;
-                    initTImgY = tImgY;
-                }
+                if(uploadedImg) { activeDrag = { type: 'ticket' }; initTImgX = tImgX; initTImgY = tImgY; }
             } else if (pos.x >= pX && pos.x <= pX + pW && pos.y >= pY && pos.y <= pY + pH) {
-                if(polaroidImg) {
-                    activeDrag = { type: 'polaroid' };
-                    initPImgX = pImgX;
-                    initPImgY = pImgY;
-                }
+                if(polaroidImg) { activeDrag = { type: 'polaroid' }; initPImgX = pImgX; initPImgY = pImgY; }
             }
         }
-
-        updateStickerUI();
-        updateTicket(); 
+        updateStickerUI(); updateTicket(); 
         if (activeDrag) isDragging = true;
     }
 
     function handlePointerMove(e) {
         if (!isDragging || !activeDrag) return;
         const pos = getMousePos(e);
-        
-        const dx = (pos.x - startMouseX); 
-        const dy = (pos.y - startMouseY);
-        
+        const dx = (pos.x - startMouseX); const dy = (pos.y - startMouseY);
         if (activeDrag.type === 'ticket') {
-            tImgX = initTImgX + dx;
-            tImgY = initTImgY + dy;
+            tImgX = initTImgX + dx; tImgY = initTImgY + dy;
             document.getElementById('imgX').value = Math.round(tImgX); document.getElementById('imgXNum').value = Math.round(tImgX);
             document.getElementById('imgY').value = Math.round(tImgY); document.getElementById('imgYNum').value = Math.round(tImgY);
         } else if (activeDrag.type === 'polaroid') {
-            pImgX = initPImgX + dx;
-            pImgY = initPImgY + dy;
+            pImgX = initPImgX + dx; pImgY = initPImgY + dy;
         } else if (activeDrag.type === 'sticker') {
             const s = stickers[activeDrag.index];
-            s.x = initStickerX + dx;
-            s.y = initStickerY + dy;
+            s.x = initStickerX + dx; s.y = initStickerY + dy;
         }
         updateTicket();
         if(e.touches) e.preventDefault(); 
     }
 
-    function handlePointerUp() {
-        isDragging = false;
-    }
+    function handlePointerUp() { isDragging = false; }
 
     canvas.addEventListener('mousedown', handlePointerDown);
     canvas.addEventListener('mousemove', handlePointerMove);
     canvas.addEventListener('mouseup', handlePointerUp);
     canvas.addEventListener('mouseleave', handlePointerUp);
-
     canvas.addEventListener('touchstart', handlePointerDown, {passive: false});
     canvas.addEventListener('touchmove', handlePointerMove, {passive: false});
     canvas.addEventListener('touchend', handlePointerUp);
 
     function createPicker(selector, inputId, defaultColor) {
         const pickr = Pickr.create({
-            el: selector,
-            theme: 'classic',
-            default: defaultColor,
-            components: {
-                preview: true, opacity: true, hue: true,
-                interaction: { hex: true, rgba: true, input: true, save: true }
-            }
+            el: selector, theme: 'classic', default: defaultColor,
+            components: { preview: true, opacity: true, hue: true, interaction: { hex: true, rgba: true, input: true, save: true } }
         });
         pickr.on('change', (color) => {
             document.getElementById(inputId).value = color.toRGBA().toString();
@@ -910,27 +813,21 @@ ctx.strokeText(fairName, 30, 75);
         createPicker('#color-picker-bg', 'bgColor', '#ffffff');
         createPicker('#color-picker-shadow', 'shadowColor', 'rgba(0,0,0,0.15)');
         createPicker('#color-picker-text', 'textColor', '#000000');
+        createPicker('#color-picker-outline', 'outlineColor', '#FFFFFF');
+        createPicker('#color-picker-detail', 'detailColor', '#333333');
         createPicker('#color-picker-margin-bg', 'marginBgColor', '#a0e0f0');
         createPicker('#color-picker-margin-pattern', 'marginPatternColor', 'rgba(255,255,255,0.48)');
     });
 
     function downloadTicket() {
         try {
-            const tempIdx = activeStickerIdx;
-            activeStickerIdx = -1;
-            updateTicket(); 
-
+            const tempIdx = activeStickerIdx; activeStickerIdx = -1; updateTicket(); 
             const link = document.createElement('a');
             link.download = `ticket_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-
-            activeStickerIdx = tempIdx;
-            updateTicket();
-        } catch(e) {
-            alert("이미지 저장 중 오류가 발생했습니다.");
-            console.error(e);
-        }
+            activeStickerIdx = tempIdx; updateTicket();
+        } catch(e) { alert("저장 오류 발생"); console.error(e); }
     }
 </script>
 
