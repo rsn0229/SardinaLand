@@ -275,7 +275,7 @@
             <div class="row">
                 <label>티켓 배경색</label>
                 <div id="color-picker-bg"></div>
-                <input type="hidden" id="bgColor" value="#FFE1E1">
+                <input type="hidden" id="bgColor" value="#ffffff">
             </div>
             <div class="row">
                 <label>그림자 색상</label>
@@ -731,12 +731,17 @@ function hexToRgb(color) {
         ctx.setLineDash([]); 
 
         ctx.fillStyle = textColor;
+ctx.lineWidth = 4; 
+ctx.strokeStyle = '#FFFFFF'; 
+ctx.lineJoin = 'round';
         ctx.font = "400 38px 'Do Hyeon'";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
+ctx.strokeText(parkName, 30, 30);
         ctx.fillText(parkName, 30, 30);
         
         ctx.font = "700 24px 'Noto Sans KR'";
+ctx.strokeText(fairName, 30, 75);
         ctx.fillText(fairName, 30, 75);
 
         ctx.font = "700 16px 'Noto Sans KR'";
