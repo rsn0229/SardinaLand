@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>자유이용권 발권기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Noto+Sans+KR:wght@400;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #9FC5E8; 
+            --primary-hover: #8ab6df;
+            --bg: #f4f6f8;
+            --panel: #ffffff;
+            --border: #e0e0e0;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: #fff;
+            width: 100%;
+            border-bottom: 2px solid #333;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .title-box {
+            font-family: 'Black Han Sans', sans-serif;
+            font-size: 2rem;
+            color: #333;
+            letter-spacing: -1px;
+        }
+        .title-point { color: var(--primary); }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1350px;
+            width: 95%;
+            margin-bottom: 50px;
+            align-items: flex-start;
+        }
+
+        .preview-area {
+            flex: 1.5;
+            min-width: 350px;
+            background: var(--panel);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+            text-align: center;
+            border: 2px solid #333;
+            z-index: 10;
+        }
+
+        .controls-area {
+            flex: 1;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .canvas-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin: 10px 0;
+            cursor: grab;
+        }
+        .canvas-wrapper:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            background-image: linear-gradient(45deg, #e5e5e5 25%, transparent 25%), linear-gradient(-45deg, #e5e5e5 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e5e5 75%), linear-gradient(-45deg, transparent 75%, #e5e5e5 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .control-group {
+            background: var(--panel);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        .control-group h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1em; border-bottom: 2px solid #eee; padding-bottom: 8px;}
+
+        .row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+        label { font-size: 0.9em; font-weight: bold; min-width: 90px; color: #555; }
+        
+        input[type="text"], select, input[type="file"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; }
+        input[type="range"] { flex: 1; cursor: pointer; }
+        input[type="number"] { width: 60px; padding: 6px; text-align: center; border: 1px solid #ccc; border-radius: 6px; }
+        
+        button.btn {
+            background: var(--primary); color: #222; border: 1px solid #7a9cba; padding: 10px 18px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;
+        }
+        button.btn:hover { background: var(--primary-hover); }
+        button.btn.primary { background: var(--primary); }
+        button.btn.danger { background: #ffcdd2; border-color: #ef9a9a; }
+        button.btn.danger:hover { background: #ef9a9a; }
+        button.btn.full { width: 100%; font-size: 1.1em; margin-top: 10px; }
+
+        .pickr { margin-right: 5px; }
+        .pcr-button { width: 28px !important; height: 28px !important; border: 1px solid #ccc !important; border-radius: 4px !important; }
+
+        .help-text { font-size: 0.8em; color: #888; margin-top: 5px; }
+
+        @media (max-width: 768px) {
+            .preview-area { position: static; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="title-box">
+        <span class="title-point">자유이용권</span> 발권기
+    </div>
+</header>
+
+<div class="container">
+    <div class="preview-area">
+        <h3>티켓 미리보기</h3>
+        <div class="canvas-wrapper">
+            <canvas id="previewCanvas" width="1000" height="600"></canvas>
+        </div>
+        <p class="help-text">이미지를 드래그해 위치를 조절할 수 있습니다.<br>스티커를 클릭하면 스티커를 옮기거나 크기를 조절할 수 있습니다.</p>
+        <button class="btn primary full" onclick="downloadTicket()">티켓 발권하기</button>
+    </div>
+
+    <div class="controls-area">
+        <div class="control-group">
+            <h3>텍스트 및 기본 정보</h3>
+            <div class="row">
+                <label>테마파크명</label>
+                <input type="text" id="parkName" value="사르디나 테마파크" oninput="updateTicket()">
+            </div>
+            <div class="row">
+                <label>페어(행사)명</label>
+                <input type="text" id="fairName" value="ANCHOR AND WAVES" oninput="updateTicket()">
+            </div>
+            <div class="row">
+                <label>발권 날짜</label>
+                <input type="text" id="issueDate" value="2020.12.21" oninput="updateTicket()">
+            </div>
+            <div class="row">
+                <label>폰트 색상</label>
+                <div id="color-picker-text"></div>
+                <input type="hidden" id="textColor" value="#000000">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>티켓 썸네일 이미지</h3>
+            <div class="row">
+                <input type="file" id="userImage" accept="image/*" onchange="handleImageUpload(this, 'ticket')">
+                <button class="btn" onclick="clearImage('ticket')">초기화</button>
+            </div>
+            <div class="row">
+                <label>크기 조절</label>
+                <input type="range" id="imgScale" min="10" max="300" value="37" oninput="document.getElementById('imgScaleNum').value=this.value; updateTicket()">
+                <input type="number" id="imgScaleNum" value="37" oninput="document.getElementById('imgScale').value=this.value; updateTicket()">
+            </div>
+            <div class="row">
+                <label>가로 위치 (X)</label>
+                <input type="range" id="imgX" min="-300" max="300" value="-8" oninput="document.getElementById('imgXNum').value=this.value; updateTicket()">
+                <input type="number" id="imgXNum" value="-8" oninput="document.getElementById('imgX').value=this.value; updateTicket()">
+            </div>
+            <div class="row">
+                <label>세로 위치 (Y)</label>
+                <input type="range" id="imgY" min="-300" max="300" value="-30" oninput="document.getElementById('imgYNum').value=this.value; updateTicket()">
+                <input type="number" id="imgYNum" value="-30" oninput="document.getElementById('imgY').value=this.value; updateTicket()">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>폴라로이드 사진</h3>
+            <div class="row">
+                <input type="file" id="polaroidImageInput" accept="image/*" onchange="handleImageUpload(this, 'polaroid')">
+                <button class="btn" onclick="clearImage('polaroid')">초기화</button>
+            </div>
+            <div class="row">
+                <label>크기 조절</label>
+                <input type="range" id="pImgScale" min="1" max="300" value="20" oninput="document.getElementById('pImgScaleNum').value=this.value; updateTicket()">
+                <input type="number" id="pImgScaleNum" value="20" oninput="document.getElementById('pImgScale').value=this.value; updateTicket()">
+            </div>
+            <div class="row">
+                <label>추억 문구</label>
+                <input type="text" id="polaroidText" value="닻과 파도의 추억" oninput="updateTicket()">
+            </div>
+        </div>
+
+        <div class="control-group" style="background-color: #fcfcfc;">
+            <h3>스티커(SD) 꾸미기</h3>
+            <div class="row">
+                <input type="file" id="stickerInput" multiple accept="image/*" onchange="handleStickerUpload(this)">
+                <button class="btn danger" onclick="clearStickers()">전체 삭제</button>
+            </div>
+            <p class="help-text" style="margin-top:0;">* 스티커를 캔버스에서 클릭하면 활성화됩니다.</p>
+            <div class="row">
+                <label>선택된 크기</label>
+                <input type="range" id="stickerScale" min="10" max="300" value="50" oninput="updateActiveStickerScale(this.value)" disabled>
+                <button class="btn danger" id="btnDeleteSticker" onclick="deleteActiveSticker()" disabled style="padding: 6px 12px;">선택 삭제</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>티켓 스타일</h3>
+            <div class="row">
+                <label>티켓 배경색</label>
+                <div id="color-picker-bg"></div>
+                <input type="hidden" id="bgColor" value="#ffffff">
+            </div>
+            <div class="row">
+                <label>그림자 색상</label>
+                <div id="color-picker-shadow"></div>
+                <input type="hidden" id="shadowColor" value="rgba(0,0,0,0.15)">
+            </div>
+            <div class="row">
+                <label>종이 질감</label>
+                <input type="checkbox" id="paperTexture" onchange="updateTicket()" checked>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>바탕 여백 (패턴)</h3>
+            <div class="row">
+                <label>여백 배경색</label>
+                <div id="color-picker-margin-bg"></div>
+                <input type="hidden" id="marginBgColor" value="#A0E0F0">
+            </div>
+            <div class="row">
+                <label>무늬 선택</label>
+                <select id="patternType" onchange="updateTicket()">
+                    <option value="none">없음</option>
+                    <option value="heart" selected>하트</option>
+                    <option value="circle">도트</option>
+                    <option value="star">별</option>
+                </select>
+            </div>
+            <div class="row">
+                <label>무늬 색상</label>
+                <div id="color-picker-margin-pattern"></div>
+                <input type="hidden" id="marginPatternColor" value="#FFFFFF7A">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>어트랙션 (오른쪽 영역)</h3>
+            <div class="row" style="display: flex; gap: 10px;">
+                <button class="btn primary" onclick="generateRandomAttractions('general')" style="flex:1;">일반 테마</button>
+                <button class="btn primary" onclick="generateRandomAttractions('sardina')" style="flex:1;">헌정 테마</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let uploadedImg = null;
+    let polaroidImg = null; 
+    let stickers = []; 
+    let currentAttractions = [];
+    let texturePattern = null;
+
+    const ticketW = 600;
+    const ticketH = 250;
+    const holeRadius = 18;
+    const dashX = 400;
+
+    const tX = 50, tY = 170, tAngle = -12 * Math.PI / 180;
+    const pW = 320, pH = 400;
+    const pX = 580, pY = 100, pAngle = 7 * Math.PI / 180;
+
+    let tImgX = -8, tImgY = -30;
+    let pImgX = 0, pImgY = 0;
+
+    let activeDrag = null; 
+    let activeStickerIdx = -1;
+
+    const generalDB = [
+        '회전목마', '범퍼카', '바이킹', '자이로드롭', '후룸라이드', 
+        '롤러코스터', '귀신의 집', '대관람차', '회전그네', 
+        '거울미로', '급류타기', '자이로스윙', '청룡열차', '번지드롭', 
+        '360도 회전열차', '꼬마기차', '회전컵', '우주비행선', '모노레일', 
+        '정글탐험보트', '4D 상영관', '레이저 서바이벌', '회전바구니', '스카이사이클'
+    ];
+
+    const sardinaDB = [
+        '등대 번지드롭', '해협 익스프레스', '크로핀 코스터', '범퍼보트', 
+        '해마 캐러셀', '로도스 해적선', '아르고노트호', '난파선 탈출', 
+        '빙글빙글 나침반', '심해 탐험선', '해저동굴의 비밀', '세이렌의 유혹', 
+        '소용돌이 술통', '파도 기사단 훈련장', '인어의 회전그네', '용기사의 비행', 
+        '의회당 미로정원', '해적단의 모험', '사르디나 대관람차'
+    ];
+
+    window.onload = function() {
+        initTexturePattern(); 
+        generateRandomAttractions('sardina');
+
+        const demoImg = new Image();
+        demoImg.onload = function() {
+            uploadedImg = demoImg;
+            updateTicket();
+        };
+        demoImg.onerror = function() {
+            console.warn("로컬 이미지를 불러올 수 없습니다. 경로를 확인해주세요: assets/ancandwav.png");
+        };
+        demoImg.src = "assets/ancandwav.png"; 
+
+        const demoPolaroid = new Image();
+        demoPolaroid.onload = function() {
+            polaroidImg = demoPolaroid;
+            document.getElementById('pImgScale').value = 20; 
+            document.getElementById('pImgScaleNum').value = 20;
+            updateTicket();
+        };
+        demoPolaroid.onerror = function() {
+            console.warn("로컬 이미지를 불러올 수 없습니다. 경로를 확인해주세요: assets/ancwav.png");
+        };
+        demoPolaroid.src = "assets/ancwav.png";
+
+        setTimeout(updateTicket, 500);
+    };
+
+    function initTexturePattern() {
+        const tCanvas = document.createElement('canvas');
+        tCanvas.width = 150; 
+        tCanvas.height = 150;
+        const tCtx = tCanvas.getContext('2d');
+        
+        for (let i = 0; i < 6000; i++) {
+            tCtx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)';
+            tCtx.fillRect(Math.random() * 150, Math.random() * 150, 1, 1);
+        }
+        
+        tCtx.globalAlpha = 0.02;
+        for (let i = 0; i < 40; i++) {
+            tCtx.beginPath();
+            tCtx.moveTo(Math.random() * 150, Math.random() * 150);
+            tCtx.lineTo(Math.random() * 150, Math.random() * 150);
+            tCtx.strokeStyle = '#000';
+            tCtx.lineWidth = 1;
+            tCtx.stroke();
+        }
+        texturePattern = ctx.createPattern(tCanvas, 'repeat');
+    }
+
+    function clearImage(type) {
+        if (type === 'ticket') {
+            uploadedImg = null; 
+            document.getElementById('userImage').value = ''; 
+            tImgX = 0; tImgY = 0;
+            document.getElementById('imgScale').value = 100; document.getElementById('imgScaleNum').value = 100;
+        } else if (type === 'polaroid') {
+            polaroidImg = null; 
+            document.getElementById('polaroidImageInput').value = ''; 
+            pImgX = 0; pImgY = 0;
+            document.getElementById('pImgScale').value = 20; document.getElementById('pImgScaleNum').value = 20;
+        }
+        updateTicket(); 
+    }
+
+    function handleImageUpload(input, type) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() { 
+                    if (type === 'ticket') {
+                        uploadedImg = img; 
+                        tImgX = 0; tImgY = 0;
+                        document.getElementById('imgScale').value = 100; document.getElementById('imgScaleNum').value = 100;
+                    } else if (type === 'polaroid') {
+                        polaroidImg = img; 
+                        pImgX = 0; pImgY = 0;
+                        document.getElementById('pImgScale').value = 20; document.getElementById('pImgScaleNum').value = 20;
+                    }
+                    updateTicket(); 
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function handleStickerUpload(input) {
+        if (input.files) {
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        stickers.push({
+                            img: img,
+                            x: canvas.width / 2 + (Math.random() * 100 - 50),
+                            y: canvas.height / 2 + (Math.random() * 100 - 50),
+                            scale: 0.5 
+                        });
+                        activeStickerIdx = stickers.length - 1; 
+                        updateStickerUI();
+                        updateTicket();
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            });
+            input.value = ''; 
+        }
+    }
+
+    function clearStickers() {
+        stickers = [];
+        activeStickerIdx = -1;
+        updateStickerUI();
+        updateTicket();
+    }
+
+    function deleteActiveSticker() {
+        if(activeStickerIdx >= 0) {
+            stickers.splice(activeStickerIdx, 1);
+            activeStickerIdx = -1;
+            updateStickerUI();
+            updateTicket();
+        }
+    }
+
+    function updateActiveStickerScale(val) {
+        if(activeStickerIdx >= 0) {
+            stickers[activeStickerIdx].scale = val / 100;
+            updateTicket();
+        }
+    }
+
+    function updateStickerUI() {
+        const scaleSlider = document.getElementById('stickerScale');
+        const btnDelete = document.getElementById('btnDeleteSticker');
+        if (activeStickerIdx >= 0 && stickers[activeStickerIdx]) {
+            scaleSlider.disabled = false;
+            btnDelete.disabled = false;
+            scaleSlider.value = Math.round(stickers[activeStickerIdx].scale * 100);
+        } else {
+            scaleSlider.disabled = true;
+            btnDelete.disabled = true;
+        }
+    }
+
+    function generateRandomAttractions(themeType) {
+        const targetDB = (themeType === 'general') ? generalDB : sardinaDB;
+        const shuffled = [...targetDB].sort(() => 0.5 - Math.random());
+        const count = 4;
+        const selected = shuffled.slice(0, count);
+        
+        currentAttractions = selected.map(name => {
+            const waitTime = (Math.floor(Math.random() * 12) + 1) * 10; 
+            return { name, waitTime };
+        });
+        updateTicket();
+    }
+
+    function hexToRgb(hex) {
+        let c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c = hex.substring(1).split('');
+            if(c.length == 3){ c = [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+            c = '0x'+c.join('');
+            return {r: (c>>16)&255, g: (c>>8)&255, b: c&255};
+        }
+        // rgba 문자열 처리 지원 (연한 그림자 적용용)
+        if(hex.startsWith('rgba')){
+            const parts = hex.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+            if(parts) return {r: parseInt(parts[1]), g: parseInt(parts[2]), b: parseInt(parts[3])};
+        }
+        return {r:255, g:255, b:255};
+    }
+
+    function drawTicketPath(ctx, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(width, 0);
+        ctx.lineTo(width, height / 2 - radius);
+        ctx.arc(width, height / 2, radius, 1.5 * Math.PI, 0.5 * Math.PI, true);
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.lineTo(0, height / 2 + radius);
+        ctx.arc(0, height / 2, radius, 0.5 * Math.PI, 1.5 * Math.PI, true);
+        ctx.closePath();
+    }
+
+    function createBackgroundPattern(type, color) {
+        if(type === 'none') return null;
+        
+        const pCanvas = document.createElement('canvas');
+        const pCtx = pCanvas.getContext('2d');
+        const size = 80; 
+        pCanvas.width = size;
+        pCanvas.height = size;
+
+        pCtx.fillStyle = color;
+        pCtx.strokeStyle = color;
+        pCtx.lineWidth = 4;
+
+        if (type === 'circle') {
+            pCtx.beginPath(); pCtx.arc(20, 20, 12, 0, Math.PI*2); pCtx.fill();
+            pCtx.beginPath(); pCtx.arc(60, 60, 12, 0, Math.PI*2); pCtx.fill();
+        } 
+        else if (type === 'heart') {
+            const drawHeart = (cx, cy) => {
+                pCtx.save();
+                pCtx.translate(cx, cy + 4);
+                pCtx.beginPath();
+                pCtx.moveTo(0, 0);
+                pCtx.bezierCurveTo(0, -10, -15, -10, -15, 0);
+                pCtx.bezierCurveTo(-15, 10, 0, 20, 0, 20);
+                pCtx.bezierCurveTo(0, 20, 15, 10, 15, 0);
+                pCtx.bezierCurveTo(15, -10, 0, -10, 0, 0);
+                pCtx.fill();
+                pCtx.restore();
+            };
+            drawHeart(20, 20); drawHeart(60, 60);
+        } 
+        else if (type === 'star') {
+            const drawStar = (cx, cy) => {
+                pCtx.save();
+                pCtx.translate(cx, cy);
+                pCtx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    pCtx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 16, -Math.sin((18 + i * 72) * Math.PI / 180) * 16);
+                    pCtx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 6, -Math.sin((54 + i * 72) * Math.PI / 180) * 6);
+                }
+                pCtx.closePath();
+                pCtx.fill();
+                pCtx.restore();
+            };
+            drawStar(20, 20); drawStar(60, 60);
+        } 
+        return ctx.createPattern(pCanvas, 'repeat');
+    }
+
+    function updateTicket() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const marginBgColor = document.getElementById('marginBgColor').value;
+        const patternType = document.getElementById('patternType').value;
+        const marginPatternColor = document.getElementById('marginPatternColor').value;
+        const bgColor = document.getElementById('bgColor').value;
+        const shadowColor = document.getElementById('shadowColor').value;
+        const textColor = document.getElementById('textColor').value;
+        const applyTexture = document.getElementById('paperTexture').checked;
+        
+        const parkName = document.getElementById('parkName').value;
+        const fairName = document.getElementById('fairName').value;
+        const issueDate = document.getElementById('issueDate').value;
+        const polText = document.getElementById('polaroidText').value;
+
+        ctx.fillStyle = marginBgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const pattern = createBackgroundPattern(patternType, marginPatternColor);
+        if (pattern) {
+            ctx.fillStyle = pattern;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.save();
+        ctx.translate(pX + pW/2, pY + pH/2);
+        ctx.rotate(pAngle);
+        ctx.translate(-(pX + pW/2), -(pY + pH/2));
+
+        ctx.save();
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 5; 
+        ctx.shadowOffsetY = 5;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(pX, pY, pW, pH);
+        ctx.restore();
+
+        const photoSize = 280;
+        const pPhotoX = pX + 20;
+        const pPhotoY = pY + 20;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(pPhotoX, pPhotoY, photoSize, photoSize);
+        ctx.clip();
+        ctx.fillStyle = '#ececec'; 
+        ctx.fillRect(pPhotoX, pPhotoY, photoSize, photoSize);
+
+        if (polaroidImg) {
+            const scale = parseInt(document.getElementById('pImgScale').value) / 100;
+            const iw = polaroidImg.width * scale;
+            const ih = polaroidImg.height * scale;
+            const dx = pPhotoX + (photoSize / 2) - (iw / 2) + pImgX;
+            const dy = pPhotoY + (photoSize / 2) - (ih / 2) + pImgY;
+            ctx.drawImage(polaroidImg, dx, dy, iw, ih);
+        }
+        ctx.restore(); 
+
+        ctx.fillStyle = '#333';
+        ctx.font = "400 36px 'Nanum Pen Script'";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(polText, pX + pW/2, pY + pH - 45);
+
+        ctx.restore(); 
+
+        ctx.save();
+        ctx.translate(tX + ticketW/2, tY + ticketH/2);
+        ctx.rotate(tAngle);
+        ctx.translate(-(tX + ticketW/2), -(tY + ticketH/2));
+
+        ctx.save();
+        ctx.translate(tX, tY);
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 5; 
+        ctx.shadowOffsetY = 5;
+        ctx.fillStyle = bgColor;
+        drawTicketPath(ctx, ticketW, ticketH, holeRadius);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(tX, tY);
+        drawTicketPath(ctx, ticketW, ticketH, holeRadius);
+        ctx.clip(); 
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, ticketW, ticketH);
+
+        if (uploadedImg) {
+            const scale = parseInt(document.getElementById('imgScale').value) / 100;
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, 0, dashX, ticketH);
+            ctx.clip();
+
+            const iw = uploadedImg.width * scale;
+            const ih = uploadedImg.height * scale;
+            const dx = (dashX / 2) - (iw / 2) + tImgX;
+            const dy = (ticketH / 2) - (ih / 2) + tImgY;
+            
+            ctx.drawImage(uploadedImg, dx, dy, iw, ih);
+            ctx.restore();
+
+            const bgRgb = hexToRgb(bgColor);
+            const grad = ctx.createLinearGradient(0, 0, dashX, 0);
+            grad.addColorStop(0, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0)`);
+            grad.addColorStop(0.65, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.5)`);
+            grad.addColorStop(1, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 1)`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, dashX, ticketH);
+        }
+
+        ctx.beginPath();
+        ctx.setLineDash([8, 6]);
+        ctx.moveTo(dashX, 0);
+        ctx.lineTo(dashX, ticketH);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]); 
+
+        ctx.fillStyle = textColor;
+        ctx.font = "400 38px 'Do Hyeon'";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText(parkName, 30, 30);
+        
+        ctx.font = "700 24px 'Noto Sans KR'";
+        ctx.fillText(fairName, 30, 75);
+
+        ctx.font = "700 16px 'Noto Sans KR'";
+        ctx.fillText("DATE: " + issueDate, dashX + 20, 35);
+        
+        for(let i=0; i<30; i++) {
+            ctx.fillRect(dashX + 20 + (i*5), 65, Math.random() > 0.5 ? 2 : 4, 25);
+        }
+
+        ctx.font = "bold 15px 'Noto Sans KR'";
+        ctx.fillText("EXPRESS PASS", dashX + 20, 110);
+        
+        ctx.font = "400 14px 'Noto Sans KR'";
+        let startY = 145; 
+        currentAttractions.forEach(attr => {
+            ctx.textAlign = "left";
+            ctx.fillText(attr.name, dashX + 20, startY);
+            ctx.textAlign = "right";
+            ctx.fillText(attr.waitTime + "분", ticketW - 25, startY);
+            startY += 24; 
+        });
+
+        if (applyTexture && texturePattern) {
+            ctx.fillStyle = texturePattern;
+            ctx.fillRect(0, 0, ticketW, ticketH);
+        }
+
+        ctx.restore();
+        ctx.restore();
+
+        stickers.forEach((s, i) => {
+            if(!s.img) return;
+            const w = s.img.width * s.scale;
+            const h = s.img.height * s.scale;
+            
+            if(i === activeStickerIdx) {
+                ctx.save();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = "rgba(0, 150, 255, 0.5)";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(s.x - w/2 - 2, s.y - h/2 - 2, w + 4, h + 4);
+                ctx.restore();
+            }
+            ctx.drawImage(s.img, s.x - w/2, s.y - h/2, w, h);
+        });
+    }
+
+    let isDragging = false;
+    let startMouseX = 0; let startMouseY = 0;
+    
+    let initTImgX = 0, initTImgY = 0;
+    let initPImgX = 0, initPImgY = 0;
+    let initStickerX = 0, initStickerY = 0;
+
+    function getMousePos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const scaleX = canvas.width / rect.width; 
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function handlePointerDown(e) {
+        const pos = getMousePos(e);
+        startMouseX = pos.x; 
+        startMouseY = pos.y;
+        
+        activeDrag = null;
+        
+        let stickerHit = false;
+        for(let i = stickers.length - 1; i >= 0; i--) {
+            const s = stickers[i];
+            const w = s.img.width * s.scale;
+            const h = s.img.height * s.scale;
+            if(pos.x >= s.x - w/2 && pos.x <= s.x + w/2 && pos.y >= s.y - h/2 && pos.y <= s.y + h/2) {
+                activeDrag = { type: 'sticker', index: i };
+                activeStickerIdx = i;
+                initStickerX = s.x;
+                initStickerY = s.y;
+                stickerHit = true;
+                break;
+            }
+        }
+
+        if (!stickerHit) {
+            activeStickerIdx = -1; 
+            
+            if (pos.x >= tX && pos.x <= tX + ticketW && pos.y >= tY && pos.y <= tY + ticketH) {
+                if(uploadedImg) {
+                    activeDrag = { type: 'ticket' };
+                    initTImgX = tImgX;
+                    initTImgY = tImgY;
+                }
+            } else if (pos.x >= pX && pos.x <= pX + pW && pos.y >= pY && pos.y <= pY + pH) {
+                if(polaroidImg) {
+                    activeDrag = { type: 'polaroid' };
+                    initPImgX = pImgX;
+                    initPImgY = pImgY;
+                }
+            }
+        }
+
+        updateStickerUI();
+        updateTicket(); 
+        if (activeDrag) isDragging = true;
+    }
+
+    function handlePointerMove(e) {
+        if (!isDragging || !activeDrag) return;
+        const pos = getMousePos(e);
+        const dx = pos.x - startMouseX;
+        const dy = pos.y - startMouseY;
+        
+        if (activeDrag.type === 'ticket') {
+            tImgX = initTImgX + dx;
+            tImgY = initTImgY + dy;
+            document.getElementById('imgX').value = tImgX; document.getElementById('imgXNum').value = tImgX;
+            document.getElementById('imgY').value = tImgY; document.getElementById('imgYNum').value = tImgY;
+        } else if (activeDrag.type === 'polaroid') {
+            pImgX = initPImgX + dx;
+            pImgY = initPImgY + dy;
+        } else if (activeDrag.type === 'sticker') {
+            const s = stickers[activeDrag.index];
+            s.x = initStickerX + dx;
+            s.y = initStickerY + dy;
+        }
+        updateTicket();
+        if(e.touches) e.preventDefault(); 
+    }
+
+    function handlePointerUp() {
+        isDragging = false;
+    }
+
+    canvas.addEventListener('mousedown', handlePointerDown);
+    canvas.addEventListener('mousemove', handlePointerMove);
+    canvas.addEventListener('mouseup', handlePointerUp);
+    canvas.addEventListener('mouseleave', handlePointerUp);
+
+    canvas.addEventListener('touchstart', handlePointerDown, {passive: false});
+    canvas.addEventListener('touchmove', handlePointerMove, {passive: false});
+    canvas.addEventListener('touchend', handlePointerUp);
+
+    function createPicker(selector, inputId, defaultColor) {
+        const pickr = Pickr.create({
+            el: selector,
+            theme: 'classic',
+            default: defaultColor,
+            components: {
+                preview: true, opacity: true, hue: true,
+                interaction: { hex: true, rgba: true, input: true, save: true }
+            }
+        });
+        pickr.on('change', (color) => {
+            // rgba 값으로 정확히 치환하여 저장
+            document.getElementById(inputId).value = color.toRGBA().toString();
+            updateTicket();
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        createPicker('#color-picker-bg', 'bgColor', '#ffffff');
+        createPicker('#color-picker-shadow', 'shadowColor', 'rgba(0,0,0,0.15)');
+        createPicker('#color-picker-text', 'textColor', '#000000');
+        createPicker('#color-picker-margin-bg', 'marginBgColor', '#a0e0f0');
+        createPicker('#color-picker-margin-pattern', 'marginPatternColor', 'rgba(255,255,255,0.48)');
+    });
+
+    function downloadTicket() {
+        try {
+            const tempIdx = activeStickerIdx;
+            activeStickerIdx = -1;
+            updateTicket(); 
+
+            const link = document.createElement('a');
+            link.download = `fairtle_ticket_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            activeStickerIdx = tempIdx;
+            updateTicket();
+        } catch(e) {
+            alert("이미지 저장 중 오류가 발생했습니다.");
+            console.error(e);
+        }
+    }
+</script>
+
+</body>
+</html>
