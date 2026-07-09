@@ -143,6 +143,7 @@
 
         .help-text { font-size: 0.8em; color: #888; margin-top: 5px; }
 
+        /* --- 📱 모바일 최적화 --- */
         @media (max-width: 768px) {
             header {
                 padding: 10px;
@@ -250,8 +251,8 @@
                 <input type="number" id="pImgScaleNum" value="20" oninput="document.getElementById('pImgScale').value=this.value; updateTicket()">
             </div>
             <div class="row">
-                <label>문구</label>
-                <input type="text" id="polaroidText" value="닻과 파도의 추억" oninput="updateTicket()">
+                <label>추억 문구</label>
+                <input type="text" id="polaroidText" value="닻과 파도의 기억" oninput="updateTicket()">
             </div>
         </div>
 
@@ -312,7 +313,7 @@
 
         <div class="control-group">
             <h3>어트랙션 (오른쪽 영역)</h3>
-            <p class="help-text" style="margin-top:0; margin-bottom:8px;">놀이기구 4종과 각각의 대기 시간이 랜덤하게 들어갑니다.</p>
+            <p class="help-text" style="margin-top:0; margin-bottom:8px;">놀이기구 4종과 대기 시간이 랜덤하게 들어갑니다.</p>
             <div class="row" style="display: flex; gap: 10px;">
                 <button class="btn primary" onclick="generateRandomAttractions('general')" style="flex:1;">일반 테마</button>
                 <button class="btn primary" onclick="generateRandomAttractions('sardina')" style="flex:1;">헌정 테마</button>
@@ -526,20 +527,21 @@
         updateTicket();
     }
 
-    function hexToRgb(hex) {
-        let c;
-        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-            c = hex.substring(1).split('');
-            if(c.length == 3){ c = [c[0], c[0], c[1], c[1], c[2], c[2]]; }
-            c = '0x'+c.join('');
-            return {r: (c>>16)&255, g: (c>>8)&255, b: c&255};
-        }
-        if(hex.startsWith('rgba')){
-            const parts = hex.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-            if(parts) return {r: parseInt(parts[1]), g: parseInt(parts[2]), b: parseInt(parts[3])};
-        }
-        return {r:255, g:255, b:255};
+function hexToRgb(color) {
+    const div = document.createElement('div');
+    div.style.color = color;
+    div.style.display = 'none';
+    document.body.appendChild(div);
+
+    const style = getComputedStyle(div).color;
+    document.body.removeChild(div);
+
+    const match = style.match(/\d+/g);
+    if (match) {
+        return { r: parseInt(match[0]), g: parseInt(match[1]), b: parseInt(match[2]) };
     }
+    return { r: 255, g: 255, b: 255 }; 
+}
 
     function drawTicketPath(ctx, width, height, radius) {
         ctx.beginPath();
@@ -712,8 +714,8 @@
 
             const bgRgb = hexToRgb(bgColor);
             const grad = ctx.createLinearGradient(0, 0, dashX, 0);
-            grad.addColorStop(0, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0)`);
-            grad.addColorStop(0.65, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.5)`);
+            grad.addColorStop(0.7, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0)`);
+            grad.addColorStop(1, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.5)`);
             grad.addColorStop(1, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 1)`);
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, dashX, ticketH);
