@@ -189,6 +189,10 @@
                 <input type="text" id="issueDate" value="2020.12.21" oninput="updateTicket()">
             </div>
             <div class="row">
+                <label>커미션주</label>
+                <input type="text" id="commissionerName" value="비공식 로페이퍼, 인게임 스크린샷" oninput="updateTicket()">
+            </div>
+            <div class="row">
                 <label>폰트 색상</label>
                 <div id="color-picker-text"></div>
                 <input type="hidden" id="textColor" value="#000000">
@@ -241,7 +245,7 @@
             </div>
             <div class="row">
                 <label>추억 문구</label>
-                <input type="text" id="polaroidText" value="닻과 파도의 기억" oninput="updateTicket()">
+                <input type="text" id="polaroidText" value="닻과 파도의 추억" oninput="updateTicket()">
             </div>
         </div>
 
@@ -570,6 +574,8 @@
         const fairName = document.getElementById('fairName').value;
         const issueDate = document.getElementById('issueDate').value;
         const polText = document.getElementById('polaroidText').value;
+        
+        const commissionerName = document.getElementById('commissionerName').value;
 
         ctx.fillStyle = marginBgColor;
         ctx.fillRect(0, 0, logicalW, logicalH);
@@ -734,6 +740,21 @@
             }
             ctx.drawImage(s.img, s.x - w/2, s.y - h/2, w, h);
         });
+
+        if (commissionerName.trim() !== "") {
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.font = "400 14px 'Noto Sans KR'";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "bottom";
+            ctx.fillText("art by. " + commissionerName, 20, logicalH - 20);
+            ctx.restore();
+        }
+
         ctx.restore();
     }
 
@@ -747,7 +768,6 @@
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        // 💡 물리 해상도가 커졌으므로, 사용자의 클릭 좌표를 논리 좌표(1000x600)로 보정해 줍니다.
         const scaleX = logicalW / rect.width; 
         const scaleY = logicalH / rect.height;
         return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
