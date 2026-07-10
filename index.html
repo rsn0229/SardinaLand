@@ -222,13 +222,13 @@
             </div>
             <div class="row">
                 <label>가로 위치 (X)</label>
-                <input type="range" id="imgX" min="-300" max="300" value="-8" oninput="document.getElementById('imgXNum').value=this.value; updateTicket()">
-                <input type="number" id="imgXNum" value="-8" oninput="document.getElementById('imgX').value=this.value; updateTicket()">
+                <input type="range" id="imgX" min="-300" max="300" value="-8" oninput="document.getElementById('imgXNum').value=this.value; tImgX = Number(this.value); updateTicket()">
+                <input type="number" id="imgXNum" value="-8" oninput="document.getElementById('imgX').value=this.value; tImgX = Number(this.value); updateTicket()">
             </div>
             <div class="row">
                 <label>세로 위치 (Y)</label>
-                <input type="range" id="imgY" min="-300" max="300" value="-30" oninput="document.getElementById('imgYNum').value=this.value; updateTicket()">
-                <input type="number" id="imgYNum" value="-30" oninput="document.getElementById('imgY').value=this.value; updateTicket()">
+                <input type="range" id="imgY" min="-300" max="300" value="-30" oninput="document.getElementById('imgYNum').value=this.value; tImgY = Number(this.value); updateTicket()">
+                <input type="number" id="imgYNum" value="-30" oninput="document.getElementById('imgY').value=this.value; tImgY = Number(this.value); updateTicket()">
             </div>
         </div>
 
@@ -553,7 +553,45 @@
         return ctx.createPattern(pCanvas, 'repeat');
     }
 
+    function clampOffset(offset, imgDim, frameDim) {
+        const bound = (imgDim - frameDim) / 2;
+        return bound >= 0 ? Math.max(-bound, Math.min(bound, offset)) : Math.max(bound, Math.min(-bound, offset));
+    }
+
+    function validateImageBounds() {
+        if (uploadedImg) {
+            const scale = parseInt(document.getElementById('imgScale').value) / 100;
+            const iw = uploadedImg.width * scale;
+            const ih = uploadedImg.height * scale;
+            
+            tImgX = clampOffset(tImgX, iw, dashX);
+            tImgY = clampOffset(tImgY, ih, ticketH);
+
+            const elX = document.getElementById('imgX');
+            const elXNum = document.getElementById('imgXNum');
+            const elY = document.getElementById('imgY');
+            const elYNum = document.getElementById('imgYNum');
+            
+            if (elX && elX.value != Math.round(tImgX)) { elX.value = Math.round(tImgX); }
+            if (elXNum && elXNum.value != Math.round(tImgX)) { elXNum.value = Math.round(tImgX); }
+            if (elY && elY.value != Math.round(tImgY)) { elY.value = Math.round(tImgY); }
+            if (elYNum && elYNum.value != Math.round(tImgY)) { elYNum.value = Math.round(tImgY); }
+        }
+
+        if (polaroidImg) {
+            const scale = parseInt(document.getElementById('pImgScale').value) / 100;
+            const iw = polaroidImg.width * scale;
+            const ih = polaroidImg.height * scale;
+            const photoSize = 280;
+            
+            pImgX = clampOffset(pImgX, iw, photoSize);
+            pImgY = clampOffset(pImgY, ih, photoSize);
+        }
+    }
+
     function updateTicket() {
+        validateImageBounds(); 
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         ctx.save();
