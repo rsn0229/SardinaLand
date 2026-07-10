@@ -314,6 +314,13 @@
 <script>
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
+
+    const exportScale = 2; 
+    const logicalW = 1000;
+    const logicalH = 600;
+
+    canvas.width = logicalW * exportScale;
+    canvas.height = logicalH * exportScale;
     
     let uploadedImg = null;
     let polaroidImg = null; 
@@ -436,8 +443,8 @@
                     img.onload = function() {
                         stickers.push({
                             img: img,
-                            x: canvas.width / 2 + (Math.random() * 100 - 50),
-                            y: canvas.height / 2 + (Math.random() * 100 - 50),
+                            x: logicalW / 2 + (Math.random() * 100 - 50),
+                            y: logicalH / 2 + (Math.random() * 100 - 50),
                             scale: 0.5 
                         });
                         activeStickerIdx = stickers.length - 1; 
@@ -545,6 +552,9 @@
     function updateTicket() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        ctx.save();
+        ctx.scale(exportScale, exportScale);
+
         const marginBgColor = document.getElementById('marginBgColor').value;
         const patternType = document.getElementById('patternType').value;
         const marginPatternColor = document.getElementById('marginPatternColor').value;
@@ -562,11 +572,11 @@
         const polText = document.getElementById('polaroidText').value;
 
         ctx.fillStyle = marginBgColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, logicalW, logicalH);
         const pattern = createBackgroundPattern(patternType, marginPatternColor);
         if (pattern) {
             ctx.fillStyle = pattern;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, logicalW, logicalH);
         }
 
         ctx.save();
@@ -649,8 +659,8 @@
 
             const bgRgb = hexToRgb(bgColor);
             const grad = ctx.createLinearGradient(0, 0, dashX, 0);
-            grad.addColorStop(0.7, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0)`);
-            grad.addColorStop(1, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.5)`);
+            grad.addColorStop(0.4, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0)`);
+            grad.addColorStop(0.75, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 0.5)`);
             grad.addColorStop(1, `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, 1)`);
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, dashX, ticketH);
@@ -724,6 +734,7 @@
             }
             ctx.drawImage(s.img, s.x - w/2, s.y - h/2, w, h);
         });
+        ctx.restore();
     }
 
     let isDragging = false;
@@ -736,8 +747,9 @@
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const scaleX = canvas.width / rect.width; 
-        const scaleY = canvas.height / rect.height;
+        // 💡 물리 해상도가 커졌으므로, 사용자의 클릭 좌표를 논리 좌표(1000x600)로 보정해 줍니다.
+        const scaleX = logicalW / rect.width; 
+        const scaleY = logicalH / rect.height;
         return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
     }
 
@@ -824,7 +836,7 @@
             const tempIdx = activeStickerIdx; activeStickerIdx = -1; updateTicket(); 
             const link = document.createElement('a');
             link.download = `ticket_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
             activeStickerIdx = tempIdx; updateTicket();
         } catch(e) { alert("저장 오류 발생"); console.error(e); }
